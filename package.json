@@ -39,6 +39,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"arrows-svg": "^1.7.1",
 		"just-split": "^3.2.0"
 	}
 }
