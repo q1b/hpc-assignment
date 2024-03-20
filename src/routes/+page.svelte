@@ -1,12 +1,9 @@
 <script lang="ts">
-	import arrowCreate, { DIRECTION } from 'arrows-svg'
 	import Block from './Block.svelte';
 	import split from 'just-split';
 
 	let number_of_processors = $state(4);
-	let selected_processor = $state({
-		value: 2,
-	});
+	let selected_processor = $state(2);
 	let selected_memory = $state(1);
 
 	function nextAddress(i: number) {
@@ -32,7 +29,7 @@
 	}
 
 	function isBitSignificant(stage: number) {
-		return getBinary(selected_processor.value)[stage] === getBinary(selected_memory)[stage];
+		return getBinary(selected_processor)[stage] === getBinary(selected_memory)[stage];
 	}
 
 	const number_of_stages = $derived(Math.log2(number_of_processors));
@@ -40,12 +37,10 @@
 	const processors: {
 		value: number;
 		binary: string;
-		el: null | HTMLElement
 	}[] = $derived(
 		Array.from({ length: number_of_processors }, (_, i) => ({
 			value: i,
-			binary: getBinary(i),
-			el: null
+			binary: getBinary(i)
 		}))
 	);
 
@@ -55,8 +50,7 @@
 				Array.from({ length: number_of_processors }, (_, i) => ({
 					value: i,
 					binary: getBinary(i),
-					active: false,
-					el: null
+					active: false
 				})),
 				2
 			).map((v) => {
@@ -76,13 +70,11 @@
 						value: number;
 						binary: string;
 						active?: boolean;
-						el: HTMLElement | null;
 					},
 					{
 						value: number;
 						binary: string;
 						active?: boolean;
-						el: HTMLElement | null;
 					}
 				];
 				after: [
@@ -90,13 +82,11 @@
 						value: number;
 						binary: string;
 						active?: boolean;
-						el: HTMLElement | null;
 					},
 					{
 						value: number;
 						binary: string;
 						active?: boolean;
-						el: HTMLElement | null;
 					}
 				];
 			}[]
@@ -111,13 +101,11 @@
 					value: number;
 					binary: string;
 					active?: boolean;
-					el: HTMLElement | null;
 				},
 				{
 					value: number;
 					binary: string;
 					active?: boolean;
-					el: HTMLElement | null;
 				}
 			];
 			after: [
@@ -125,13 +113,11 @@
 					value: number;
 					binary: string;
 					active?: boolean;
-					el: HTMLElement | null;
 				},
 				{
 					value: number;
 					binary: string;
 					active?: boolean;
-					el: HTMLElement | null;
 				}
 			];
 		}[];
@@ -141,17 +127,15 @@
 		stages = getStages(number_of_stages);
 	});
 	$effect(() => {
-		let currentProcessor = selected_processor.value;
+		let currentProcessor = selected_processor;
 		let previousProcessor = currentProcessor;
 		console.log('selected processor', currentProcessor, getBinary(currentProcessor));
 		for (let stageIndex = 0; stageIndex < stages.length; stageIndex++) {
 			previousProcessor = currentProcessor;
 			currentProcessor = nextAddress(currentProcessor);
 			console.log('Points to ', currentProcessor);
-
 			const stage = stages[stageIndex];
 			let z: number | null = null;
-			
 			const switchIndex = stage.switches.findIndex((Switch) => {
 				if (Switch.before[0].value === currentProcessor) {
 					z = 0;
@@ -161,7 +145,7 @@
 					return true;
 				}
 				return false;
-			})
+			});
 
 			if (!isBitSignificant(stageIndex) && switchIndex !== -1) {
 				stages[stageIndex].switches[switchIndex].before[z].active = true;
@@ -216,7 +200,7 @@
 	<div class="flex items-center gap-x-6">
 		<div class="flex flex-col gap-y-4">
 			{#each processors as processor}
-				<Block bind:el={processor.el} index={0} active={selected_processor.value === processor.value}>
+				<Block index={0} active={selected_processor === processor.value}>
 					{processor.binary}
 				</Block>
 			{/each}
@@ -224,22 +208,15 @@
 		{#each stages as stage, i}
 			<div class="flex flex-col gap-y-4 divide-y-2">
 				{#each stage.switches as Switch}
-					<div
-						class="flex gap-y-1 rounded-md border-indigo-300"
-						class:border-2={Switch.method === 'crossover'}
-					>
+					<div class="flex gap-y-1 border-indigo-300 rounded-md" class:border-2={Switch.method === 'crossover'}>
 						<div class="flex flex-col">
 							{#each Switch.before as item}
-								<Block bind:el={item.el} block="before" index={i} active={item.active}>
-									{item.binary}
-								</Block>
+								<Block block="before" index={i} active={item.active}>{item.binary}</Block>
 							{/each}
 						</div>
 						<div class="flex flex-col">
 							{#each Switch.after as item}
-								<Block bind:el={item.el} block="after" index={i} active={item.active}>
-									{item.binary}
-								</Block>
+								<Block block="after" index={i} active={item.active}>{item.binary}</Block>
 							{/each}
 						</div>
 					</div>
